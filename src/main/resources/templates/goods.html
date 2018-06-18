@@ -1,8 +1,7 @@
 <!doctype html>
 <html lang="eng"
       xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+      xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/head :: head"></head>
 <body >
 <div th:replace="fragments/header :: header"></div>
@@ -26,7 +25,7 @@
                                     <option th:text="All" th:value="-1"></option>
                                     <option th:each = "category : ${categoryList}"
                                             th:value="${category.getCategoryId()}"
-                                            th:text="${category.getCategoryName()}"/>
+                                            th:text="${category.getCategoryName()}"></option>>
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-success btn-sm myButton">Отбор</button>
@@ -40,7 +39,7 @@
         </div>
     </div>
     <div class="row">
-            <table id="tabledit"class="table table-hover">
+            <table id="tabledit" class="table table-hover">
                 <thead>
                 <tr>
                     <th scope="col">
@@ -78,7 +77,7 @@
                 <tr th:each="product : ${productList}">
                         <td id="productId" th:text="${product.productId}"></td>
                         <td id="productImage" style>
-                            <img class="img-fluid rounded" data-src="holder.js/100x100?bg=#e9ecef&text=Нет" th:src="@{'/uploads/'+${product.getProductImageName()}}"
+                            <img src="" class="img-fluid rounded" data-src="holder.js/100x100?bg=#e9ecef&text=Нет" th:src="@{'/uploads/'+${product.getProductImageName()}}"
                             style="width: 100px; height:100px">
                         </td>
                         <td id="productCategory" th:text="${product.productCategory.getCategoryName()}"></td>
@@ -105,7 +104,7 @@
         <div class="col-sm-12 col-lg-12">
             <div class="row">
                 <div class="col-xs-12 col-sm-12 col-lg-12">
-                    <h6 style="text-align: center;" th:text="'Страница №' + ${pageNumber + 1} + ' из ' + ${totalPages}"/>
+                    <h6 style="text-align: center;" th:text="'Страница №' + ${pageNumber + 1} + ' из ' + ${totalPages}"></h6>
                 </div>
             </div>
             <div class="row justify-content-between">

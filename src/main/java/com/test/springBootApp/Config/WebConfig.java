@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements  WebMvcConfigurer {
 
     @Value("${upload.path}")
-    String uploadPath;
+    private String uploadPath;
 
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("helloPage");

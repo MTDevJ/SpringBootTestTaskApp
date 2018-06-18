@@ -36,7 +36,7 @@ public class ProductController  {
     private Integer pageSize = 10;
 
     @Value("${upload.path}")
-    String uploadPath;
+    private String uploadPath;
 
     public void setSortColumn(String sortColumn) {
         this.sortColumn = sortColumn;
@@ -81,7 +81,10 @@ public class ProductController  {
 
     @GetMapping("/editProduct/{id}")
     public String editProduct(@PathVariable Integer id,Model model) {
-        Product product = repository.findById(id).get();
+        Product product = new Product();
+        if (repository.findById(id).isPresent())  {
+            product = repository.findById(id).get();
+        }
         model.addAttribute("product",product);
         model.addAttribute("categoryList",categoryRepository.findAll());
         model.addAttribute("model", "EDIT");
@@ -91,7 +94,12 @@ public class ProductController  {
     @GetMapping("/deleteProduct/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     String deleteProduct(@PathVariable Integer id){
-        repository.deleteById(id);
+        Product delProduct;
+        if (repository.findById(id).isPresent()) {
+            delProduct = repository.findById(id).get();
+            deleteImage(delProduct);
+            repository.deleteById(id);
+        }
         return "redirect:/goods";
     }
 
@@ -100,7 +108,7 @@ public class ProductController  {
     public String saveProduct(@ModelAttribute @Valid Product product,
                               @RequestParam("productImage") MultipartFile productImage,
                               RedirectAttributes redirectAttributes) throws IOException {
-        String imageName = null;
+        String imageName;
         if (product.getProductId() == null) {
             if ( repository.findByproductName(product.getProductName()) != null ) {
                 redirectAttributes.addFlashAttribute( "message","Товар с данным наименованием уже имеется в базе!");
@@ -121,15 +129,16 @@ public class ProductController  {
                 repository.save(newProduct);
             }
         } else {
-            Product editProduct = repository.findById(product.getProductId()).get();
-
+            Product editProduct = new Product();
+            if (repository.findById(product.getProductId()).isPresent())
+                editProduct = repository.findById(product.getProductId()).get();
             editProduct.setProductName(product.getProductName());
             editProduct.setProductDescription(product.getProductDescription());
             editProduct.setProductPrice(product.getProductPrice());
             editProduct.setProductAmount(product.getProductAmount());
             if (!productImage.isEmpty()){
                 imageName = safeImage(productImage);
-                deleteImage(editProduct.getProductImageName());
+                deleteImage(editProduct);
                 editProduct.setProductImageName(imageName);
             }
             editProduct.setProductCategory(product.getProductCategory());
@@ -169,12 +178,17 @@ public class ProductController  {
 
     @GetMapping("/sortProductByCategory")
     public String sortProductByCategory() {
-        if (this.sortNameMethod.equals("ASCCategory"))
-            this.setSortNameMethod("DESCCategory");
-        else if (this.sortNameMethod.equals("DESCCategory"))
-            this.setSortNameMethod("ASCCategory") ;
-        else
-            this.setSortNameMethod("ASCCategory") ;
+        switch (this.sortNameMethod) {
+            case "ASCCategory" :
+                this.setSortNameMethod("DESCCategory");
+                break;
+            case "DESCCategory" :
+                this.setSortNameMethod("ASCCategory");
+                break;
+             default :
+                 this.setSortNameMethod("ASCCategory");
+                 break;
+        }
         return "redirect:/goods";
     }
 
@@ -249,7 +263,7 @@ public class ProductController  {
 
     private String safeImage(MultipartFile productImage) throws IOException {
         File uploadDir = new File(uploadPath);
-        String resultFileName = null;
+        String resultFileName = "";
         if (!uploadDir.exists()) {
             uploadDir.mkdir();
         }
@@ -262,13 +276,17 @@ public class ProductController  {
         return resultFileName;
     }
 
-    private void deleteImage(String imageName) {
-        if (!imageName.isEmpty() || !imageName.equals(""))
-        try{
-            File file = new File(uploadPath + File.separator + imageName);
-            file.delete();
-        } catch (Exception ex) {
-            System.err.println(ex);
+    private void deleteImage(Product product) {
+        if (product.getProductImageName() != null) {
+            if(!product.getProductImageName().equals("")) {
+                try{
+                    String imageName = product.getProductImageName();
+                    File file = new File(uploadPath + File.separator + imageName);
+                    file.delete();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
     }
 }

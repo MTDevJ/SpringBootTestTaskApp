@@ -30,7 +30,7 @@
             <select th:field="*{productCategory}" class="form-control form-control-sm mb-3">
                 <option th:each = "category : ${categoryList}"
                         th:value="${category.getCategoryId()}"
-                        th:text="${category.getCategoryName()}"/>
+                        th:text="${category.getCategoryName()}"></option>
             </select>
 
             <textarea class="form-control form-control-sm mb-3" placeholder="Описание" rows="5"
@@ -39,7 +39,7 @@
         </div>
         <div class="form-group row">
             <div class="col-md-6">
-                <input required type="number"step="0.01" min="0.01"class="form-control form-control-sm mb-3" placeholder="Цена"
+                <input required type="number" step="0.01" min="0.01" class="form-control form-control-sm mb-3" placeholder="Цена"
                        th:field="*{productPrice}">
             </div>
             <div class="col-md-6">
