@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="eng"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head">
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<div class="jumbotron ">
+    <div class="container">
+        <h1 class="display-4">Рабочая страница</h1>
+        <div th:switch="${model}" class="container">
+            <div th:case="ADD" class="container">
+                <p class="lead">Создание нового элемента</p>
+            </div>
+            <div th:case="EDIT" class="container">
+                <p class="lead">Редактирование элемента</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container actionContainer">
+    <form class="actionForm" action="#" th:action="@{/saveCategory}" th:object="${category}" name="modal_form" id="modal_form"  method="post" role="form">
+        <div class="form-group">
+            <input type="number" hidden th:field="*{categoryId}">
+            <h6  th:if="${message}" th:text="${message}" class="message" f></h6>
+            <input required type="text" class="form-control form-control-sm mb-3" placeholder="Наименование"
+                   th:field="*{categoryName}" maxlength="50">
+
+            <textarea class="form-control form-control-sm mb-3" placeholder="Описание" rows=11 cols=30
+                      th:field="*{categoryDescription}" maxlength="250">
+            </textarea>
+
+            <button type="submit" class="btn btn-success myButton">Сохранить</button>
+            <a class="btn btn-primary myButton" href="#" th:href="@{/categories}">Отмена</a>
+        </div>
+    </form>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="eng"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+    <div th:fragment="footer">
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script  th:src="@{/webjars/jquery/3.0.0/jquery.min.js}"></script>
+        <script  th:src="@{/webjars/popper.js/1.14.1/umd/popper.min.js}"></script>
+        <script th:src="@{/webjars/bootstrap/4.1.0/js/bootstrap.min.js}"></script>
+        <script th:src="@{/webjars/bootstrap/4.1.0/js/bootstrap.min.js}"></script>
+        <script type="text/javascript">
+           $(document).ready(function() {
+                $('li.active').removeClass('active');
+                $('a[href="' + location.pathname + '"]').closest('li').addClass('active');
+                });
+        </script>
+    </div>
+</body>
+</html>

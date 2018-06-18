@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="eng"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head th:replace="fragments/head :: head"></head>
+<body >
+<div th:replace="fragments/header :: header"></div>
+<div class="jumbotron jumbotron-fluid">
+    <div class="container">
+        <h1 class="display-4">Рабочая страница</h1>
+        <p class="lead">Список товаров</p>
+    </div>
+</div>
+<div class="container">
+    <p th:unless="${productList} and ${productList.size()}">No available goods...</p>
+    <div class="row">
+        <div class="col-sm-12 col-lg-12">
+            <div class="row row justify-content-between">
+                <div class="col-8 col-sm-8 col-lg-6">
+                    <form th:action="@{/searchByCategory}" th:object="${categoryList}" method="get">
+                        <div class="form-group row">
+                            <label for="categoryId">Отбор по категории</label>
+                            <div class="col-4 col-md-4 col-sm-4">
+                                <select class="form-control form-control-sm" id="categoryId" name="categoryId">
+                                    <option th:text="All" th:value="-1"></option>
+                                    <option th:each = "category : ${categoryList}"
+                                            th:value="${category.getCategoryId()}"
+                                            th:text="${category.getCategoryName()}"/>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm myButton">Отбор</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-4 col-sm-4 col-lg-6" th:if="${user.username} eq 'admin'">
+                    <a th:href="@{/addProduct}" class="btn btn-secondary btn-sm myButton float-right" style="margin-bottom: 32px">Добавить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+            <table id="tabledit"class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <a th:href="@{'/sortProduct/{sortColumn}' (sortColumn=('productId'))}"><i class="fas fa-stream"></i></a>
+                    </th>
+                    <th scope="col">Изображение</th>
+                    <th scope="col">
+                        <div style="display:-webkit-inline-box">
+                            <p class="mb-0">
+                                <a href="#" th:href="@{/sortProductByCategory}">Категория</a>
+                            </p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div style="display:-webkit-inline-box">
+                            <p class="mb-0">
+                                <a href="#" th:href="@{'/sortProduct/{sortColumn}' (sortColumn=('productName'))}">Наименование</a>
+                            </p>
+                        </div>
+                    </th>
+                    <th scope="col">Описание</th>
+                    <th scope="col">
+                        <div style="display:-webkit-inline-box">
+                            <p class="mb-0">
+                                <a href="#" th:href="@{'/sortProduct/{sortColumn}' (sortColumn=('productPrice'))}">Цена</a>
+                            </p>
+                        </div>
+                    </th>
+                    <th scope="col">Количество</th>
+                    <th th:if="${user.username} eq 'admin'" scope="col">Изменить</th>
+                    <th th:if="${user.username} eq 'admin'" scope="col">Удалить</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${productList}">
+                        <td id="productId" th:text="${product.productId}"></td>
+                        <td id="productImage" style>
+                            <img class="img-fluid rounded" data-src="holder.js/100x100?bg=#e9ecef&text=Нет" th:src="@{'/uploads/'+${product.getProductImageName()}}"
+                            style="width: 100px; height:100px">
+                        </td>
+                        <td id="productCategory" th:text="${product.productCategory.getCategoryName()}"></td>
+                        <td id="productName" th:text="${product.productName}"></td>
+                        <td class="descriptionContent" id="productDescription" th:text="${product.productDescription}"></td>
+                        <td id="productPrice" th:text="${product.productPrice}"></td>
+                        <td id="productAmount" th:text="${product.productAmount}"></td>
+                        <td th:if="${user.username} eq 'admin'" style="text-align: center">
+                            <a href="#" th:href="@{'/editProduct/{id}' (id=${product.productId})}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                        </td>
+                        <td th:if="${user.username} eq 'admin'" style="text-align: center">
+                            <a  data-title="Вы уверены?" data-toggle="confirmation" target="_self"
+                                th:href="@{'/deleteProduct/{id}' (id=${product.productId})}">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    <div  th:if="${productList.size()>0}" class="row">
+        <div class="col-sm-12 col-lg-12">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-lg-12">
+                    <h6 style="text-align: center;" th:text="'Страница №' + ${pageNumber + 1} + ' из ' + ${totalPages}"/>
+                </div>
+            </div>
+            <div class="row justify-content-between">
+                <div class="col-xs-12 col-sm-12 col-lg-6">
+                    <form method="get" th:action="@{/setPageSizeGoods}">
+                        <div class="form-group row">
+                            <label for="pageSize">Элементов на странице</label>
+                            <div class="col-sm-3">
+                                <select class="form-control form-control-sm" id="pageSize" name="pageSize">
+                                    <option selected>
+                                    </option>
+                                    <option th:text="3" th:value="3">
+                                    </option>
+                                    <option  th:text="5" th:value="5">
+                                    </option>
+                                    <option th:text="10" th:value="10">
+                                    </option>
+                                    <option th:text="50" th:value="50">
+                                    </option>
+                                    <option th:text="100" th:value="100">
+                                    </option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm myButton">OK</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-lg-4">
+                    <ul class="pagination">
+                        <li class="page-item" >
+                            <a href="#" th:href="@{/goods(page=0,size=${size})}"
+                               class="page-link myButton" tabindex="-1" >First</a>
+                        </li>
+                        <li class="page-item" >
+                            <a href="#" th:href="${pageNumber}>0? @{/goods(page=${pageNumber-1},size=${size})} : @{/goods(page=0,size=${size})}"
+                               class="page-link myButton" tabindex="-1" >Previous</a>
+                        </li>
+                        <li class="page-item" th:each="str,iterStat:${#numbers.sequence(1,totalPages)}">
+                            <a href="#" th:href="@{/goods(page=${iterStat.index},size=${size})}"
+                               class="page-link myButton" th:text="${str}"></a>
+                        </li>
+                        <li class="page-item" >
+                            <a href="#" th:href="${pageNumber}<${totalPages-1}? @{/goods(page=${pageNumber+1},size=${size})} : @{/goods(page=${totalPages-1},size=${size})}"
+                               class="page-link myButton" tabindex="-1" >Next</a>
+                        </li>
+                        <li class="page-item" >
+                            <a href="#" th:href="@{/goods(page=${totalPages-1},size=${size})}"
+                               class="page-link myButton">Last</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+<script th:src="@{../js/Confirmation/dist/bootstrap-confirmation.js}"></script>
+<script>
+     $('[data-toggle=confirmation]').confirmation({
+        rootSelector: '[data-toggle=confirmation]',
+        container: 'body'
+     });
+</script>
+<script th:src="@{../js/description.js}"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+

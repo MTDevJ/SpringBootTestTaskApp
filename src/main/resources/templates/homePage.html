@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="eng"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<div class="jumbotron ">
+    <div class="container">
+        <h1 class="display-4">Домашняя страница</h1>
+        <p class="lead">Тестовое задание</p>
+    </div>
+</div>
+<div class="container">
+    <h1 style="text-align: center;" th:text="'Приветствую,' + ${user.username} + '!'"/>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

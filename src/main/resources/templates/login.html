@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+
+    <link th:href="@{/webjars/bootstrap/4.1.0/css/bootstrap.min.css}" rel="stylesheet" media="screen"/>
+    <link th:href="@{/css/content.css}" rel="stylesheet" media="screen" />
+    <link rel="stylesheet" href="../css/signin.css" th:href="@{/css/signin.css}" >
+
+</head>
+<body class="text-center">
+<div class="jumbotron ">
+    <div class="container">
+        <form th:action="@{/login}" method="post" class="form-signin" >
+            <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+            <label for="inputLogin" class="sr-only">Login</label>
+            <input name="username" type="login" id="inputLogin" class="form-control" placeholder="Login" required autofocus>
+            <label for="inputPassword" class="sr-only">Password</label>
+            <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+            <button class="btn btn-lg btn-secondary btn-block myButton" type="submit">Sign in</button>
+            <div th:if="${param.error}">
+                Invalid username and password.
+            </div>
+            <div th:if="${param.logout}">
+                You have been logged out.
+            </div>
+            <p class="mt-5 mb-3 text-muted">&copy;2018</p>
+        </form>
+    </div>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

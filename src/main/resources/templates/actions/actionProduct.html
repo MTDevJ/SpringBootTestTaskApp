@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="eng"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head">
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<div class="jumbotron ">
+    <div class="container">
+        <h1 class="display-4">Рабочая страница</h1>
+        <div th:switch="${model}" class="container">
+            <div th:case="ADD" class="container">
+                <p class="lead">Создание нового элемента</p>
+            </div>
+            <div th:case="EDIT" class="container">
+                <p class="lead">Редактирование элемента</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container actionContainer">
+    <form class="actionForm" action="#" th:action="@{/saveProduct}" th:object="${product}" name="input_form"
+          id="input_form" method="post" role="form" enctype="multipart/form-data">
+        <div class="form-group">
+            <input type="number" hidden th:field="*{productId}">
+            <h6  th:if="${message}" th:text="${message}" class="message" f></h6>
+            <input required class="form-control form-control-sm mb-3" placeholder="Наименование" th:field="*{productName}" maxlength="50">
+
+            <select th:field="*{productCategory}" class="form-control form-control-sm mb-3">
+                <option th:each = "category : ${categoryList}"
+                        th:value="${category.getCategoryId()}"
+                        th:text="${category.getCategoryName()}"/>
+            </select>
+
+            <textarea class="form-control form-control-sm mb-3" placeholder="Описание" rows="5"
+                      th:field="*{productDescription}" maxlength="250">
+            </textarea>
+        </div>
+        <div class="form-group row">
+            <div class="col-md-6">
+                <input required type="number"step="0.01" min="0.01"class="form-control form-control-sm mb-3" placeholder="Цена"
+                       th:field="*{productPrice}">
+            </div>
+            <div class="col-md-6">
+                <input required type="number" class="form-control form-control-sm mb-3" placeholder="Количество"
+                       th:field="*{productAmount}" value="0" min="0">
+            </div>
+        </div>
+        <div class="form-group row">
+                <div class="col-md-6">
+                    <div class="custom-file mb-3">
+                        <input  type="file" name="productImage" class="custom-file-input"
+                               id="productImage" value="Upload">
+                        <label for="productImage" class="custom-file-label">Выбирите файл...</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <img class="rounded float-center" id="image" name="image" data-src="holder.js/100x100?bg=#e9ecef&text=Нет"
+                         src="" th:src="@{'/uploads/'+${product.getProductImageName()}}" style="width: 100px; height:100px"/>
+                </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-success myButton">Сохранить</button>
+            <a class="btn btn-primary myButton" href="#" th:href="@{/goods}">Отмена</a>
+        </div>
+    </form>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+<script>
+    function readURL(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            $('#image').attr('src', e.target.result);
+        };
+        reader.readAsDataURL(input.files[0]);
+        }
+    }
+$("#productImage").change(function(){
+    readURL(this);
+});
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

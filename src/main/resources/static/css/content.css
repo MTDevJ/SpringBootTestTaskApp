@@ -1,0 +1,41 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.jumbotron, .jumbotron-fluid {
+ margin-top: 3rem;
+ text-align: center;
+ }
+
+.container {
+  width: auto;
+  padding: 0 15px;
+ }
+
+a > i,
+ a:hover  > i,
+ a:active > i,
+ a:visited > i {
+ color: #52565a;
+ }
+
+ .table {
+     background-color: #e9ecef;
+     text-align: center;
+ }
+
+ .myButton {
+    color:#f8f9fa;
+    background-color:#52565a;
+    border-color:#52565a;
+ }
+
+ .message {
+        background-color: #e9ecef;
+        padding: 5px;
+ }
