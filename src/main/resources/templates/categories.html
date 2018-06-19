@@ -37,8 +37,6 @@
                             <p class="mb-0">
                                 <a href="#" th:href="@{'/sortCategory/{sortColumn}' (sortColumn=('categoryName'))}">Название</a>
                             </p>
-                          <!--  <a th:href="@{'/sortCategory/{sortName}' (sortName = 'ASC')}"><i class="far fa-caret-square-up"></i></a>
-                            <a th:href="@{'/sortCategory/{sortName}' (sortName = 'DESC')}"><i class="far fa-caret-square-down"></i></a>-->
                         </div>
                     </th>
                     <th scope="col">Описание</th>
@@ -72,7 +70,7 @@
         <div class="col-sm-12 col-lg-12">
             <div class="row">
                 <div class="col-xs-12 col-sm-12 col-lg-12">
-                    <h6 style="text-align: center;" th:text="'Страница №' + ${pageNumber + 1} + ' из ' + ${totalPages}"></h6>>
+                    <h6 style="text-align: center;" th:text="'Страница №' + ${pageNumber + 1} + ' из ' + ${totalPages}"></h6>
                 </div>
             </div>
             <div class="row justify-content-between">
