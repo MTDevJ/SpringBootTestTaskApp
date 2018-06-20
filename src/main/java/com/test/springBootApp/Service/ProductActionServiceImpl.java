@@ -77,9 +77,8 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     }
 
     public String edit(Integer id, Model model) {
-        Product product;
         if (repository.findById(id).isPresent())  {
-            product = repository.findById(id).get();
+            Product product = repository.findById(id).get();
             model.addAttribute("product",product);
             model.addAttribute("categoryList",categoryRepository.findAll());
             model.addAttribute("model", "EDIT");
@@ -90,9 +89,8 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     }
 
     public String delete(Integer id) {
-        Product delProduct;
         if (repository.findById(id).isPresent()) {
-            delProduct = repository.findById(id).get();
+            Product delProduct = repository.findById(id).get();
             deleteImage(delProduct);
             repository.deleteById(id);
         } else {
