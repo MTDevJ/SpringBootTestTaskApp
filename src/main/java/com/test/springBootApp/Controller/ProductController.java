@@ -43,8 +43,8 @@ public class ProductController  {
 
     @GetMapping("/deleteProduct/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public String deleteProduct(@PathVariable Integer id){
-        return service.delete(id);
+    public String deleteProduct(@PathVariable Integer id, RedirectAttributes redirectAttributes){
+        return service.delete(id, redirectAttributes);
     }
 
     @PostMapping("/saveProduct")
