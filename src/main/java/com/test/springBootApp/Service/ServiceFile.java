@@ -26,7 +26,7 @@ class ServiceFile {
                 return resultFileName;
             }
         }
-        return null;
+        return "3";
     }
 
     static boolean deleteImage(Product product, String path) {

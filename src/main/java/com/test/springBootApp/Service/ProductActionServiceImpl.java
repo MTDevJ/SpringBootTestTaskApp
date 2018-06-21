@@ -17,6 +17,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class ProductActionServiceImpl implements ActionService, ProductService{
 
@@ -30,6 +33,14 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     private Page<Product> products;
     private Pageable page;
     private Integer pageSize = 10;
+
+    private final Map<String,String> errorMessages = new HashMap<String,String>(){{
+        put("0",null);
+        put("1","Товар с данным наименованием уже имеется в базе!");
+        put("2","Товар с данным id отсутствует в базе!");
+        put("3","Недопустимый формат файла, либо отсутствует имя файла!");
+        put("4","Ошибка удаления файла!");
+    }};
 
     @Value("${upload.path}")
     public String uploadPath;
@@ -102,32 +113,37 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     public String saveProduct(Product product,
                               MultipartFile productImage,
                               RedirectAttributes redirectAttributes) {
-        String errorMessage;
-        if (product.getProductId() == null) {
-            if ( repository.findByproductName(product.getProductName()) != null ) {
-                redirectAttributes.addFlashAttribute( "message","Товар с данным наименованием уже имеется в базе!");
-                return "redirect:/editProduct";
-                // return "redirect:/addProduct";
+        String errorId;
+        if ( !checkProduct(product) ) {
+            redirectAttributes.addFlashAttribute( "message", errorMessages.get("1"));
+            if (product.getProductId() != null) {
+                return "redirect:/editProduct/" + product.getProductId();
             } else {
-                errorMessage = initImage(product, "ADD", productImage);
-                if (errorMessage!= null) {
-                    redirectAttributes.addFlashAttribute( "message","Недопустимый формат файла, либо отсутствует имя файла!");
+                return "redirect:/addProduct";
+            }
+        } else {
+            if (product.getProductId() == null) {
+                //Add product
+                errorId = initImage(product, "ADD", productImage);
+                if (errorId != null) {
+                    redirectAttributes.addFlashAttribute( "message", errorMessages.get(errorId));
                     return "redirect:/addProduct";
                 }
                 repository.save(product);
-            }
-        } else {
-            if (repository.findById(product.getProductId()).isPresent()) {
-                Product editProduct = repository.findById(product.getProductId()).get();
-                errorMessage = initImage(editProduct, "EDIT", productImage);
-                if (errorMessage!= null) {
-                    redirectAttributes.addFlashAttribute( "message","Ошибка удаления файла!");
-                    return "redirect:/editProduct";
-                }
-                repository.save(editProduct);
             } else {
-                redirectAttributes.addFlashAttribute( "message","Товар с данным id отсутствует в базе!");
-                return "redirect:/editProduct";
+                    //Edit product
+                if (checkProduct(product)) {
+                        Product editProduct = repository.findById(product.getProductId()).get();
+                        errorId = initImage(editProduct, "EDIT", productImage);
+                        if (errorId != null) {
+                            redirectAttributes.addFlashAttribute( "message", errorMessages.get(errorId));
+                            return "redirect:/editProduct/" + product.getProductId();
+                        }
+                    repository.save(editProduct);
+                } else {
+                        redirectAttributes.addFlashAttribute( "message","Товар с данным id отсутствует в базе!");
+                        return "redirect:/editProduct/" + product.getProductId();
+                }
             }
         }
         return "redirect:/goods";
@@ -240,17 +256,24 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
 
     private String initImage(Product product, String mode, MultipartFile image) {
         if (!image.isEmpty()) {
-            String imageName = ServiceFile.safeImage(image, uploadPath);
-            if (imageName == null) {
-                return  "error";
+            String result = ServiceFile.safeImage(image, uploadPath);
+            if (errorMessages.containsKey(result)) {
+                return  result;
             } else {
                 if (!ServiceFile.deleteImage(product, uploadPath)) {
-                    return  "error";
+                    return  "4";
                 }
             }
-            product.setProductImageName(imageName);
+            product.setProductImageName(result);
         }
         return null;
+    }
+
+    private boolean checkProduct(Product product){
+        Product findProduct = repository.findByproductName(product.getProductName().trim());
+        if(findProduct != null)
+            return findProduct.getProductId().equals(product.getProductId()) ;
+        return  true;
     }
 }
 
