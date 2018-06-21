@@ -6,4 +6,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public interface CategoryService {
 
     String saveCategory(Category category, RedirectAttributes requestAttribute);
+
+    String delete(Integer id);
 }

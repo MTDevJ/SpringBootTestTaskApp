@@ -17,10 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
 @Service
 public class ProductActionServiceImpl implements ActionService, ProductService{
 
@@ -30,12 +26,13 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     private String sortNameMethod = "ASC";
     private String sortColumn = "productId";
     private Integer filterCategory;
+
     private Page<Product> products;
     private Pageable page;
     private Integer pageSize = 10;
 
     @Value("${upload.path}")
-    private String uploadPath;
+    public String uploadPath;
 
     public void setSortNameMethod(String sortNameMethod) {
         this.sortNameMethod = sortNameMethod;
@@ -88,10 +85,13 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
         return "/actions/actionProduct" ;
     }
 
-    public String delete(Integer id) {
+    public String delete(Integer id, RedirectAttributes redirectAttributes) {
         if (repository.findById(id).isPresent()) {
             Product delProduct = repository.findById(id).get();
-            deleteImage(delProduct);
+            if (!ServiceFile.deleteImage(delProduct, uploadPath)) {
+                redirectAttributes.addFlashAttribute( "message","Ошибка удаления изображения!");
+                return "redirect:/goods";
+            }
             repository.deleteById(id);
         } else {
             throw new NotFoundException();
@@ -102,42 +102,33 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     public String saveProduct(Product product,
                               MultipartFile productImage,
                               RedirectAttributes redirectAttributes) {
-        String imageName;
+        String errorMessage;
         if (product.getProductId() == null) {
             if ( repository.findByproductName(product.getProductName()) != null ) {
                 redirectAttributes.addFlashAttribute( "message","Товар с данным наименованием уже имеется в базе!");
-                return "redirect:/add";
+                return "redirect:/editProduct";
+                // return "redirect:/addProduct";
             } else {
-                Product newProduct = new Product();
-
-                newProduct.setProductName(product.getProductName());
-                newProduct.setProductDescription(product.getProductDescription());
-                newProduct.setProductPrice(product.getProductPrice());
-                newProduct.setProductAmount(product.getProductAmount());
-                if (!productImage.isEmpty()) {
-                    imageName = safeImage(productImage);
-                    newProduct.setProductImageName(imageName);
+                errorMessage = initImage(product, "ADD", productImage);
+                if (errorMessage!= null) {
+                    redirectAttributes.addFlashAttribute( "message","Недопустимый формат файла, либо отсутствует имя файла!");
+                    return "redirect:/addProduct";
                 }
-                newProduct.setProductCategory(product.getProductCategory());
-
-                repository.save(newProduct);
+                repository.save(product);
             }
         } else {
-            Product editProduct = new Product();
-            if (repository.findById(product.getProductId()).isPresent())
-                editProduct = repository.findById(product.getProductId()).get();
-            editProduct.setProductName(product.getProductName());
-            editProduct.setProductDescription(product.getProductDescription());
-            editProduct.setProductPrice(product.getProductPrice());
-            editProduct.setProductAmount(product.getProductAmount());
-            if (!productImage.isEmpty()){
-                imageName = safeImage(productImage);
-                deleteImage(editProduct);
-                editProduct.setProductImageName(imageName);
+            if (repository.findById(product.getProductId()).isPresent()) {
+                Product editProduct = repository.findById(product.getProductId()).get();
+                errorMessage = initImage(editProduct, "EDIT", productImage);
+                if (errorMessage!= null) {
+                    redirectAttributes.addFlashAttribute( "message","Ошибка удаления файла!");
+                    return "redirect:/editProduct";
+                }
+                repository.save(editProduct);
+            } else {
+                redirectAttributes.addFlashAttribute( "message","Товар с данным id отсутствует в базе!");
+                return "redirect:/editProduct";
             }
-            editProduct.setProductCategory(product.getProductCategory());
-
-            repository.save(editProduct);
         }
         return "redirect:/goods";
     }
@@ -247,36 +238,26 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
         model.addAttribute("user", user);
     }
 
-    private String safeImage(MultipartFile productImage)  {
-        File uploadDir = new File(uploadPath);
-        String resultFileName = "";
-        if (!uploadDir.exists()) {
-            uploadDir.mkdir();
-        }
-        if (productImage != null && !productImage.getOriginalFilename().isEmpty()) {
-            String uuidFile = UUID.randomUUID().toString();
-            resultFileName = uuidFile + "." + productImage.getOriginalFilename();
-            try {
-                productImage.transferTo( new File(uploadDir.getAbsolutePath() + File.separator + resultFileName));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return resultFileName;
-        }
-        return resultFileName;
-    }
-
-    private void deleteImage(Product product) {
-        if (product.getProductImageName() != null) {
-            if(!product.getProductImageName().equals("")) {
-                try{
-                    String imageName = product.getProductImageName();
-                    File file = new File(uploadPath + File.separator + imageName);
-                    file.delete();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+    private String initImage(Product product, String mode, MultipartFile image) {
+        if (!image.isEmpty()) {
+            String imageName = ServiceFile.safeImage(image, uploadPath);
+            if (imageName == null) {
+                return  "error";
+            } else {
+                if (!ServiceFile.deleteImage(product, uploadPath)) {
+                    return  "error";
                 }
             }
+            product.setProductImageName(imageName);
         }
+        return null;
     }
 }
+
+
+
+
+
+
+
+

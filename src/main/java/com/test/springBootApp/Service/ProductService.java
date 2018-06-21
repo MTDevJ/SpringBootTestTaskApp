@@ -17,4 +17,6 @@ public interface ProductService {
 
     String sortProductByCategory();
 
+    String delete(Integer id, RedirectAttributes redirectAttributes);
+
 }

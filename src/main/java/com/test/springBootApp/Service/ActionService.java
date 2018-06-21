@@ -3,6 +3,7 @@ package com.test.springBootApp.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 public interface ActionService {
 
@@ -11,8 +12,6 @@ public interface ActionService {
     String add(Model model);
 
     String edit(Integer id, Model model);
-
-    String delete(Integer id);
 
     String sort(String sortColumn);
 

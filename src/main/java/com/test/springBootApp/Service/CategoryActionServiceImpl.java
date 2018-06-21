@@ -129,4 +129,6 @@ public class CategoryActionServiceImpl implements ActionService, CategoryService
             this.setPageSize(pageSize);
         return "redirect:/categories";
     }
+
+
 }
