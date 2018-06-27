@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link th:href="@{/webjars/bootstrap/4.1.0/css/bootstrap.min.css}" rel="stylesheet" media="screen"/>
+    <link th:href="@{/css/content.css}" rel="stylesheet" media="screen" />
+</head>
+<body class="text-center">
+<div class="jumbotron">
+  <h1 class="display-4">ОШИБКА!</h1>
+  <h6 class="lead" th:if="${errorMessage}" th:text="${errorMessage}">Текст ошибки</h6>
+  <hr class="my-4">
+  <p class="lead">
+      <a class="btn btn-secondary btn-lg myButton" href="/homePage" role="button">ОК</a>
+  </p>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>
