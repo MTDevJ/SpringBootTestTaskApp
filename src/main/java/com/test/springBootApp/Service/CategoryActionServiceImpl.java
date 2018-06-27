@@ -69,7 +69,7 @@ public class CategoryActionServiceImpl implements ActionService, CategoryService
 
     public String saveCategory(Category category, RedirectAttributes requestAttribute) {
         if (category.getCategoryId() == null) {
-            if ( repository.findBycategoryName(category.getCategoryName()) != null ) {
+            if ( repository.findBycategoryName(category.getCategoryName().trim()) != null ) {
                 requestAttribute.addFlashAttribute("message","Категория '" + category.getCategoryName() + "' уже существует!");
                 return "redirect:/addCategory";
             } else{
