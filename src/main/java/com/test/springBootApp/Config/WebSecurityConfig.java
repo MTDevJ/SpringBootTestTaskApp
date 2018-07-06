@@ -27,7 +27,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                     .antMatchers("/",
-                        "/mywebapp",
                         "/css/*",
                         "/webjars/bootstrap/4.1.0/css/bootstrap.min.css",
                         "/webjars/bootstrap/4.1.0/js/bootstrap.min.js",
