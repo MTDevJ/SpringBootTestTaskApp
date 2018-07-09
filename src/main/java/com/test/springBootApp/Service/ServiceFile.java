@@ -8,28 +8,23 @@ import java.util.UUID;
 
 class ServiceFile {
 
-    static String safeImage(MultipartFile productImage, String path)  {
-        if (ServiceFile.validFile(productImage)) {
-            File uploadDir = new File(path);
-            String resultFileName;
-            if (!uploadDir.exists()) {
-                uploadDir.mkdir();
-            }
-            if (!productImage.getOriginalFilename().equals("") && !productImage.getOriginalFilename().isEmpty()) {
-                String uuidFile = UUID.randomUUID().toString();
-                resultFileName = uuidFile + "." + productImage.getOriginalFilename();
-                try {
-                    productImage.transferTo( new File(uploadDir.getAbsolutePath() + File.separator + resultFileName));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return resultFileName;
-            }
+    private static String safeImage(MultipartFile productImage, String path)  {
+        File uploadDir = new File(path);
+        String resultFileName;
+        if (!uploadDir.exists()) {
+            uploadDir.mkdir();
         }
-        return "3";
+        String uuidFile = UUID.randomUUID().toString();
+        resultFileName = uuidFile + "." + productImage.getOriginalFilename();
+        try {
+            productImage.transferTo( new File(uploadDir.getAbsolutePath() + File.separator + resultFileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resultFileName;
     }
 
-    static boolean deleteImage(Product product, String path) {
+    static Boolean deleteImage(Product product, String path) {
         if (product.getProductImageName() != null && !product.getProductImageName().equals("")) {
                 try{
                     String imageName = product.getProductImageName();
@@ -43,8 +38,12 @@ class ServiceFile {
         return true;
     }
 
-    private static boolean validFile(MultipartFile productImage){
+    public static String validFile(MultipartFile productImage, String path){
+        if (productImage.getOriginalFilename().equals("") && productImage.getOriginalFilename().isEmpty()) {
+            return "3";
+        }
         String fileName = productImage.getOriginalFilename();
-        return fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".gif");
+        boolean isValid = fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".gif");
+        return isValid ? safeImage(productImage,path) : "3";
     }
 }

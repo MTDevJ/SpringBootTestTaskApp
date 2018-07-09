@@ -1,11 +1,16 @@
 package com.test.springBootApp.Service;
 
 import com.test.springBootApp.Entity.Category;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
 
-    String saveCategory(Category category, RedirectAttributes requestAttribute);
+    Page<Category> getAll(Pageable pageable) ;
 
-    String delete(Integer id);
+    Boolean saveCategory(Category category);
+
+    void delete(Integer id);
+
+    Category findOne(Integer id);
 }

@@ -1,6 +1,8 @@
 package com.test.springBootApp.Service;
 
+import com.test.springBootApp.Entity.Category;
 import com.test.springBootApp.Entity.Product;
+import com.test.springBootApp.ErrorMessageClass;
 import com.test.springBootApp.Exception.NotFoundException;
 import com.test.springBootApp.Repository.CategoryRepository;
 import com.test.springBootApp.Repository.ProductRepository;
@@ -10,12 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,14 +31,6 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     private Page<Product> products;
     private Pageable page;
     private Integer pageSize = 10;
-
-    private final Map<String,String> errorMessages = new HashMap<String,String>(){{
-        put("0",null);
-        put("1","Товар с данным наименованием уже имеется в базе!");
-        put("2","Товар с данным id отсутствует в базе!");
-        put("3","Недопустимый формат файла, либо отсутствует имя файла!");
-        put("4","Ошибка удаления файла!");
-    }};
 
     @Value("${upload.path}")
     public String uploadPath;
@@ -62,7 +52,7 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
     }
 
     @Autowired
-    public void setRepository(CategoryRepository repository) {
+    public void categoryRepository(CategoryRepository repository) {
         this.categoryRepository = repository;
     }
 
@@ -71,130 +61,62 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
         this.repository = repository;
     }
 
-    public Model getAll(Model model, Pageable pageable, User user) {
-        products = filterAndSort(pageable);
-        initModel(model, user);
-        return model;
+    @Override
+    public Page<Product> getAll(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
-    public String add(Model model) {
-        model.addAttribute("product", new Product());
-        model.addAttribute("categoryList", categoryRepository.findAll());
-        model.addAttribute("model", "ADD");
-        return "/actions/actionProduct";
-    }
-
-    public String edit(Integer id, Model model) {
-        if (repository.findById(id).isPresent())  {
-            Product product = repository.findById(id).get();
-            model.addAttribute("product",product);
-            model.addAttribute("categoryList",categoryRepository.findAll());
-            model.addAttribute("model", "EDIT");
-        } else  {
-            throw new NotFoundException();
-        }
-        return "/actions/actionProduct" ;
-    }
-
-    public String delete(Integer id, RedirectAttributes redirectAttributes) {
+    public Boolean delete(Integer id) {
         if (repository.findById(id).isPresent()) {
             Product delProduct = repository.findById(id).get();
             if (!ServiceFile.deleteImage(delProduct, uploadPath)) {
-                redirectAttributes.addFlashAttribute( "message","Ошибка удаления изображения!");
-                return "redirect:/goods";
+                return false;
             }
             repository.deleteById(id);
+            return true;
         } else {
             throw new NotFoundException();
         }
-        return "redirect:/goods";
     }
 
-    public String saveProduct(Product product,
-                              MultipartFile productImage,
-                              RedirectAttributes redirectAttributes) {
-        String errorId;
-        if ( !checkProduct(product) ) {
-            redirectAttributes.addFlashAttribute( "message", errorMessages.get("1"));
-            if (product.getProductId() != null) {
-                return "redirect:/editProduct/" + product.getProductId();
-            } else {
-                return "redirect:/addProduct";
-            }
-        } else {
+    public Map<Boolean, String> saveProduct(Product product, MultipartFile image) {
+        Map<Boolean, String>  resultMap = new HashMap<>();
+        String result;
+        Product actionProduct;
+        if (!checkProductName(product)) {
             if (product.getProductId() == null) {
-                //Add product
-                errorId = initImage(product, "ADD", productImage);
-                if (errorId != null) {
-                    redirectAttributes.addFlashAttribute( "message", errorMessages.get(errorId));
-                    return "redirect:/addProduct";
+                if (!image.isEmpty()) {
+                    result = saveImage(image, product);
+                    if (ErrorMessageClass.getErrorMessage(result) == null) {
+                        repository.save(product);
+                        resultMap.put(true, null);
+                    } else {
+                        resultMap.put(false, result);
+                    }
                 }
                 repository.save(product);
             } else {
-                    //Edit product
-                if (checkProduct(product)) {
-                        Product editProduct = repository.findById(product.getProductId()).get();
-                        errorId = initImage(editProduct, "EDIT", productImage);
-                        if (errorId != null) {
-                            redirectAttributes.addFlashAttribute( "message", errorMessages.get(errorId));
-                            return "redirect:/editProduct/" + product.getProductId();
-                        }
-                    repository.save(editProduct);
+                resultMap.put(false, "1");
+            }
+        } else {
+            actionProduct = repository.findById(product.getProductId()).get();
+            if (!image.isEmpty()) {
+                result = saveImage(image, actionProduct);
+                if (ErrorMessageClass.getErrorMessage(result) == null) {
+                    repository.save(actionProduct);
+                    resultMap.put(true, null);
                 } else {
-                        redirectAttributes.addFlashAttribute( "message","Товар с данным id отсутствует в базе!");
-                        return "redirect:/editProduct/" + product.getProductId();
+                    resultMap.put(false, result);
                 }
+            } else {
+                product.setProductImageName(actionProduct.getProductImageName());
+                repository.save(product);
             }
         }
-        return "redirect:/goods";
+        return resultMap;
     }
 
-    public String searchByCategory(Integer categoryId, Pageable pageable, Model model, User user) {
-        this.setFilterCategory(categoryId);
-        if (categoryId == -1) {
-            page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-            products = repository.findAll(page);
-        } else {
-            page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-            products = repository.findAllByCategoryIdOrderBySomeASC(filterCategory, page);
-        }
-        initModel(model,user);
-        return "/goods";
-    }
-
-    public String sort(String sortColumn) {
-        this.setSortColumn(sortColumn);
-        if (this.sortNameMethod.equals("ASC"))
-            this.setSortNameMethod("DESC");
-        else
-            this.setSortNameMethod("ASC") ;
-        return "redirect:/goods";
-    }
-
-    public String sortProductByCategory() {
-        switch (this.sortNameMethod) {
-            case "ASCCategory" :
-                this.setSortNameMethod("DESCCategory");
-                break;
-            case "DESCCategory" :
-                this.setSortNameMethod("ASCCategory");
-                break;
-            default :
-                this.setSortNameMethod("ASCCategory");
-                break;
-        }
-        return "redirect:/goods";
-    }
-
-    public String setPageSizeFromModel(Integer pageSize) {
-        if (pageSize == null)
-            this.setPageSize(this.pageSize);
-        else
-            this.setPageSize(pageSize);
-        return "redirect:/goods";
-    }
-
-    private Page<Product> filterAndSort(Pageable pageable) {
+    public Page<Product> filterAndSort(Pageable pageable) {
         if (filterCategory == null || filterCategory == -1 ){
             switch (sortNameMethod) {
                 case "ASC":
@@ -243,37 +165,86 @@ public class ProductActionServiceImpl implements ActionService, ProductService{
         return products;
     }
 
-    private void initModel(Model model, @AuthenticationPrincipal User user) {
-        model.addAttribute("pageNumber", products.getNumber());
-        model.addAttribute("totalPages", products.getTotalPages());
-        model.addAttribute("totalElements", products.getTotalElements());
-        model.addAttribute("size", products.getSize());
-        model.addAttribute("productList", products.getContent());
-        model.addAttribute("categoryList",categoryRepository.findAll());
-        model.addAttribute("sortColumn",sortColumn);
-        model.addAttribute("user", user);
+    public void sort(String sortColumn) {
+        this.setSortColumn(sortColumn);
+        if (this.sortNameMethod.equals("ASC"))
+            this.setSortNameMethod("DESC");
+        else
+            this.setSortNameMethod("ASC") ;
     }
 
-    private String initImage(Product product, String mode, MultipartFile image) {
-        if (!image.isEmpty()) {
-            String result = ServiceFile.safeImage(image, uploadPath);
-            if (errorMessages.containsKey(result)) {
-                return  result;
-            } else {
-                if (!ServiceFile.deleteImage(product, uploadPath)) {
-                    return  "4";
-                }
-            }
-            product.setProductImageName(result);
+    public void sortProductByCategory() {
+        switch (this.sortNameMethod) {
+            case "ASCCategory" :
+                this.setSortNameMethod("DESCCategory");
+                break;
+            case "DESCCategory" :
+                this.setSortNameMethod("ASCCategory");
+                break;
+            default :
+                this.setSortNameMethod("ASCCategory");
+                break;
+        }
+    }
+
+    public Product findOne(Integer id) {
+        if (repository.findById(id).isPresent()) {
+            return repository.findById(id).get();
         }
         return null;
     }
 
-    private boolean checkProduct(Product product){
+    public Iterable<Category> findAllCategories() {
+        return categoryRepository.findAll();
+    }
+
+    public void searchByCategory(Integer categoryId, Pageable pageable) {
+        this.setFilterCategory(categoryId);
+        if (categoryId == -1) {
+            page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            products = repository.findAll(page);
+        } else {
+            page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            products = repository.findAllByCategoryIdOrderBySomeASC(filterCategory, page);
+        }
+    }
+
+    public void setPageSizeFromModel(Integer pageSize) {
+        if (pageSize == null)
+            this.setPageSize(this.pageSize);
+        else
+            this.setPageSize(pageSize);
+    }
+
+    public String saveImage(MultipartFile image, Product product) {
+        String result;
+            result = ServiceFile.validFile(image, uploadPath);
+
+            if(ErrorMessageClass.getErrorMessage(result) == null) {
+                if (!result.isEmpty()) {
+                    if(ServiceFile.deleteImage(product, uploadPath)) {
+                        product.setProductImageName(result);
+                    } else {
+                        return "4";
+                    }
+                }
+            }
+        return result;
+    }
+
+    private boolean checkProductName(Product product){
         Product findProduct = repository.findByproductName(product.getProductName().trim());
         if(findProduct != null)
             return findProduct.getProductId().equals(product.getProductId()) ;
-        return  true;
+        return  false;
+    }
+
+    public ActionMode checkActionMode(Product product){
+        if (product.getProductId() == null) {
+            return ActionMode.ADD;
+        } else {
+            return ActionMode.EDIT;
+        }
     }
 }
 

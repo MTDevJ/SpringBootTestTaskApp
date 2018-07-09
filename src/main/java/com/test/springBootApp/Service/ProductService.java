@@ -1,22 +1,27 @@
 package com.test.springBootApp.Service;
 
+import com.test.springBootApp.Entity.Category;
 import com.test.springBootApp.Entity.Product;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.Map;
 
 public interface ProductService {
 
-    String saveProduct(Product product, MultipartFile productImage, RedirectAttributes redirectAttributes) throws IOException;
+    Page<Product> getAll(Pageable pageable);
 
-    String searchByCategory(Integer categoryId, Pageable pageable, Model model, User user);
+    Map<Boolean, String> saveProduct(Product product, MultipartFile image) throws IOException;
 
-    String sortProductByCategory();
+    void searchByCategory(Integer categoryId, Pageable pageable);
 
-    String delete(Integer id, RedirectAttributes redirectAttributes);
+    void sortProductByCategory();
 
+    Boolean delete(Integer id);
+
+    Iterable<Category> findAllCategories();
+
+    Page<Product> filterAndSort(Pageable pageable);
 }
